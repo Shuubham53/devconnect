@@ -1,2 +1,3 @@
 # devconnect
- Developer community platform - Spring Boot, JWT, JPA, PostgreSQL
+Developer community platform built with Spring Boot
+Status: Under Development
