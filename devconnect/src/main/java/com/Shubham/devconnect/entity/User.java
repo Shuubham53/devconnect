@@ -120,4 +120,7 @@ public class User  implements UserDetails {
     public boolean isEnabled() {
         return this.isActive;
     }
+    public String getActualUsername() {
+        return this.username;
+    }
 }
