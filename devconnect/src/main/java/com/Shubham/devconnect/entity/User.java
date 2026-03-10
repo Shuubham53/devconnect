@@ -71,20 +71,6 @@ public class User  implements UserDetails {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // Followers - users who follow me
-    @ManyToMany
-    @JoinTable(
-            name = "follows",
-            joinColumns = @JoinColumn(name = "following_id"),
-            inverseJoinColumns = @JoinColumn(name = "follower_id")
-    )
-    @Builder.Default
-    private Set<User> followers = new HashSet<>();
-
-    // Following - users I follow
-    @ManyToMany(mappedBy = "followers")
-    @Builder.Default
-    private Set<User> following = new HashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

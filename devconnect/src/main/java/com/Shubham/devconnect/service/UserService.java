@@ -4,6 +4,7 @@ package com.Shubham.devconnect.service;
 import com.Shubham.devconnect.dto.request.UpdateProfileRequest;
 import com.Shubham.devconnect.dto.response.UserResponse;
 import com.Shubham.devconnect.entity.User;
+import com.Shubham.devconnect.repository.FollowRepository;
 import com.Shubham.devconnect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
 
     // Get current logged in user from SecurityContext
     private User getCurrentUser() {
@@ -85,8 +87,8 @@ public class UserService {
                 .linkedinUrl(user.getLinkedinUrl())
                 .skills(user.getSkills())
                 .role(String.valueOf(user.getRole()))
-                .followersCount(user.getFollowers().size())
-                .followingCount(user.getFollowing().size())
+                .followersCount((int) followRepository.countByFollowing(user))
+                .followingCount((int) followRepository.countByFollower(user))
                 .createdAt(user.getCreatedAt())
                 .build();
     }
