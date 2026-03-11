@@ -6,8 +6,7 @@ import com.Shubham.devconnect.entity.Post;
 import com.Shubham.devconnect.entity.User;
 import com.Shubham.devconnect.enums.PostStatus;
 import com.Shubham.devconnect.enums.PostType;
-import com.Shubham.devconnect.repository.PostRepository;
-import com.Shubham.devconnect.repository.UserRepository;
+import com.Shubham.devconnect.repository.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +26,9 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder
@@ -148,9 +150,9 @@ public class PostService {
                 .authorName(post.getUser().getName())
                 .authorUsername(post.getUser().getActualUsername())
                 .authorId(post.getUser().getId())
-                .likesCount(0)
-                .commentsCount(0)
-                .bookmarksCount(0)
+                .likesCount((int) likeRepository.countByPost(post))
+                .commentsCount((int) commentRepository.countByPost(post))
+                .bookmarksCount((int) bookmarkRepository.countByPost(post))
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();
