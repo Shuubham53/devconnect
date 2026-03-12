@@ -92,4 +92,37 @@ public class UserService {
                 .createdAt(user.getCreatedAt())
                 .build();
     }
+    // Get all users — admin only
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    // Ban user — set isActive false
+    public String banUser(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new RuntimeException("User not found"));
+        user.setIsActive(false);
+        userRepository.save(user);
+        return "User banned successfully";
+    }
+
+    // Unban user
+    public String unbanUser(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new RuntimeException("User not found"));
+        user.setIsActive(true);
+        userRepository.save(user);
+        return "User unbanned successfully";
+    }
+
+    // Delete user
+    public String deleteUser(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new RuntimeException("User not found"));
+        userRepository.delete(user);
+        return "User deleted successfully";
+    }
 }

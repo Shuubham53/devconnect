@@ -181,4 +181,29 @@ public class PostService {
                 .updatedAt(post.getUpdatedAt())
                 .build();
     }
+    // Get ALL posts including flagged/deleted — admin only
+    public List<PostResponse> getAllPostsAdmin() {
+        return postRepository.findAll()
+                .stream()
+                .map(this::mapToPostResponse)
+                .collect(Collectors.toList());
+    }
+
+    // Flag a post
+    public String flagPost(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(() ->
+                new RuntimeException("Post not found"));
+        post.setStatus(PostStatus.FLAGGED);
+        postRepository.save(post);
+        return "Post flagged successfully";
+    }
+
+    // Delete any post — admin
+    public String deletePostAdmin(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(() ->
+                new RuntimeException("Post not found"));
+        post.setStatus(PostStatus.DELETED);
+        postRepository.save(post);
+        return "Post deleted successfully";
+    }
 }
