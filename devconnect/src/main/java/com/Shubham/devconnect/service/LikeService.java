@@ -3,6 +3,7 @@ package com.Shubham.devconnect.service;
 import com.Shubham.devconnect.entity.Like;
 import com.Shubham.devconnect.entity.Post;
 import com.Shubham.devconnect.entity.User;
+import com.Shubham.devconnect.enums.NotificationType;
 import com.Shubham.devconnect.repository.LikeRepository;
 import com.Shubham.devconnect.repository.PostRepository;
 import com.Shubham.devconnect.repository.UserRepository;
@@ -20,6 +21,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder
@@ -40,6 +42,14 @@ public class LikeService {
                 .user(currentUser)
                 .build();
         likeRepository.save(like);
+        // In LikeService — after likeRepository.save(like)
+        notificationService.createNotification(
+                currentUser,
+                post.getUser(),
+                NotificationType.LIKE,
+                currentUser.getName() + " liked your post",
+                post
+        );
         return "Post liked successfully";
     }
 

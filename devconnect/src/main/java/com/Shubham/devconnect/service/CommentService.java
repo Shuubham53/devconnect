@@ -5,6 +5,7 @@ import com.Shubham.devconnect.dto.response.CommentResponse;
 import com.Shubham.devconnect.entity.Comment;
 import com.Shubham.devconnect.entity.Post;
 import com.Shubham.devconnect.entity.User;
+import com.Shubham.devconnect.enums.NotificationType;
 import com.Shubham.devconnect.repository.CommentRepository;
 import com.Shubham.devconnect.repository.PostRepository;
 import com.Shubham.devconnect.repository.UserRepository;
@@ -21,6 +22,7 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
     private final UserRepository userRepository;
 
     private User getCurrentUser() {
@@ -45,6 +47,13 @@ public class CommentService {
                 .parentComment(null)
                 .build();
         comment = commentRepository.save(comment);
+        notificationService.createNotification(
+                currentUser,
+                post.getUser(),
+                NotificationType.COMMENT,
+                currentUser.getName() + " commented on your post",
+                post
+        );
         return mapToCommentResponse(comment);
 
     }
@@ -61,6 +70,13 @@ public class CommentService {
                 .parentComment(parentComment)
                 .build();
         comment = commentRepository.save(comment);
+        notificationService.createNotification(
+                currentUser,
+                parentComment.getUser(),
+                NotificationType.REPLY,
+                currentUser.getName() + " replied to your comment",
+                parentComment.getPost()
+        );
         return mapToCommentResponse(comment);
 
     }

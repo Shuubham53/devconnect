@@ -3,6 +3,7 @@ package com.Shubham.devconnect.service;
 import com.Shubham.devconnect.dto.response.UserResponse;
 import com.Shubham.devconnect.entity.Follow;
 import com.Shubham.devconnect.entity.User;
+import com.Shubham.devconnect.enums.NotificationType;
 import com.Shubham.devconnect.repository.FollowRepository;
 import com.Shubham.devconnect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class FollowService {
 
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     private final FollowRepository followRepository;
 
     private User getCurrentUser() {
@@ -50,6 +52,14 @@ public class FollowService {
                 .build();
 
         followRepository.save(follow);
+        // In FollowService — after followRepository.save(follow)
+        notificationService.createNotification(
+                currentUser,
+                targetUser,
+                NotificationType.FOLLOW,
+                currentUser.getName() + " started following you",
+                null
+        );
         return "Successfully followed " + targetUser.getActualUsername();
     }
 
