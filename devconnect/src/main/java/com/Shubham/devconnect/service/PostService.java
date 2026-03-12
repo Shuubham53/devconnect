@@ -2,6 +2,7 @@ package com.Shubham.devconnect.service;
 
 import com.Shubham.devconnect.dto.request.PostRequest;
 import com.Shubham.devconnect.dto.response.PostResponse;
+import com.Shubham.devconnect.entity.Follow;
 import com.Shubham.devconnect.entity.Post;
 import com.Shubham.devconnect.entity.User;
 import com.Shubham.devconnect.enums.PostStatus;
@@ -18,7 +19,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final BookmarkRepository bookmarkRepository;
@@ -38,6 +42,26 @@ public class PostService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
+    }
+
+    public List<PostResponse> getFeed() {
+        User currentUser = getCurrentUser();
+        List<User> followingUsers = followRepository.findByFollower(currentUser)
+                .stream()
+                .map(Follow::getFollowing)
+                .collect(Collectors.toList());
+        List<Post> posts = postRepository.findFeedPosts(followingUsers);
+        return posts.stream()
+                .map(this::mapToPostResponse)
+                .toList();
+    }
+
+    public List<PostResponse> getTrending() {
+        LocalDateTime since = LocalDateTime.now().minusHours(24);
+        return postRepository.findTrendingPosts(since)
+                .stream()
+                .map(this::mapToPostResponse)
+                .collect(Collectors.toList());
     }
 
 

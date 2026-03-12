@@ -68,4 +68,15 @@ public class PostController {
         List<PostResponse> response = postService.getPostsByTag(tag);
         return ResponseEntity.ok(ApiResponse.success("Post found of tag "+tag,response));
     }
+
+    @GetMapping("/feed")
+    public ResponseEntity<ApiResponse<List<PostResponse>>>getFeed(){
+        List<PostResponse> responses = postService.getFeed();
+        return ResponseEntity.ok(ApiResponse.success("posts in feed",responses));
+    }
+    @GetMapping("/trending")
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getTrending(){
+        List<PostResponse> responses = postService.getTrending();
+        return ResponseEntity.ok(ApiResponse.success("Trending posts",responses));
+    }
 }

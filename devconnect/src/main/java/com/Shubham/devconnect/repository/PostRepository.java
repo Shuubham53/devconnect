@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -37,4 +38,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.user IN :users " +
             "AND p.status = 'ACTIVE' ORDER BY p.createdAt DESC")
     List<Post> findFeedPosts(@Param("users") List<User> users);
+
+    @Query("SELECT p FROM Post p WHERE p.status = 'ACTIVE' AND " +
+            "p.createdAt >= :since ORDER BY " +
+            "(SELECT COUNT(l) FROM Like l WHERE l.post = p) DESC")
+    List<Post> findTrendingPosts(@Param("since") LocalDateTime since);
 }
