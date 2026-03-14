@@ -24,6 +24,7 @@ public class CommentService {
     private final PostRepository postRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final ScoreService scoreService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder
@@ -47,6 +48,8 @@ public class CommentService {
                 .parentComment(null)
                 .build();
         comment = commentRepository.save(comment);
+        scoreService.addScore(post.getUser(), 2, "Received a comment on post");
+        scoreService.addScore(currentUser, 3, "Wrote a comment");
         notificationService.createNotification(
                 currentUser,
                 post.getUser(),

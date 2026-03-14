@@ -33,6 +33,7 @@ public class PostService {
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final ScoreService scoreService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder
@@ -66,16 +67,17 @@ public class PostService {
 
 
     public PostResponse createPost(PostRequest request) {
-        User user = getCurrentUser();
+        User currentUser = getCurrentUser();
         Post post = Post.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .tags(request.getTags())
                 .postType(request.getPostType())
                 .viewCount(0)
-                .user(user)
+                .user(currentUser)
                 .build();
         post = postRepository.save(post);
+        scoreService.addScore(currentUser, 10, "Created a post");
         return mapToPostResponse(post);
 
     }

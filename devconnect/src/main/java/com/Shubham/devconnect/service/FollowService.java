@@ -21,6 +21,7 @@ public class FollowService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final FollowRepository followRepository;
+    private final ScoreService scoreService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder
@@ -52,6 +53,9 @@ public class FollowService {
                 .build();
 
         followRepository.save(follow);
+        // After followRepository.save(follow);
+        scoreService.addScore(targetUser, 5, "Received a new follower");
+        scoreService.addScore(currentUser, 1, "Followed a developer");
         // In FollowService — after followRepository.save(follow)
         notificationService.createNotification(
                 currentUser,

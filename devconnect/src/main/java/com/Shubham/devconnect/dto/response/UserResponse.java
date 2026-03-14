@@ -23,6 +23,8 @@ public class UserResponse {
     private String linkedinUrl;
     private String skills;
     private String role;
+    private Integer score;
+    private String badge;
     private int followersCount;
     private int followingCount;
     private LocalDateTime createdAt;

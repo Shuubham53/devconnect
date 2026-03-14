@@ -63,6 +63,14 @@ public class User  implements UserDetails {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer score = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String badge = "NEWCOMER";
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

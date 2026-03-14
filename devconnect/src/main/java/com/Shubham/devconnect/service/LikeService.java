@@ -22,6 +22,7 @@ public class LikeService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final ScoreService scoreService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder
@@ -42,6 +43,8 @@ public class LikeService {
                 .user(currentUser)
                 .build();
         likeRepository.save(like);
+        // After likeRepository.save(like);
+        scoreService.addScore(post.getUser(), 5, "Received a like on post");
         // In LikeService — after likeRepository.save(like)
         notificationService.createNotification(
                 currentUser,

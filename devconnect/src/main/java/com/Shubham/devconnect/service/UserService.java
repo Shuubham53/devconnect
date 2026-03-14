@@ -2,11 +2,14 @@ package com.Shubham.devconnect.service;
 
 
 import com.Shubham.devconnect.dto.request.UpdateProfileRequest;
+import com.Shubham.devconnect.dto.response.ScoreHistoryResponse;
 import com.Shubham.devconnect.dto.response.UserResponse;
+import com.Shubham.devconnect.entity.ScoreHistory;
 import com.Shubham.devconnect.entity.User;
 import com.Shubham.devconnect.repository.FollowRepository;
 import com.Shubham.devconnect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
+    private final ScoreService scoreService;
 
     // Get current logged in user from SecurityContext
     private User getCurrentUser() {
@@ -86,6 +90,8 @@ public class UserService {
                 .githubUrl(user.getGithubUrl())
                 .linkedinUrl(user.getLinkedinUrl())
                 .skills(user.getSkills())
+                .score(user.getScore())
+                .badge(user.getBadge())
                 .role(String.valueOf(user.getRole()))
                 .followersCount((int) followRepository.countByFollowing(user))
                 .followingCount((int) followRepository.countByFollower(user))
@@ -124,5 +130,26 @@ public class UserService {
                 new RuntimeException("User not found"));
         userRepository.delete(user);
         return "User deleted successfully";
+    }
+
+
+    // Get top 10 developers by score
+    public List<UserResponse> getLeaderboard() {
+        List<User> topDevelopers = userRepository.findTopDevelopers(PageRequest.of(0,10));
+        return topDevelopers.stream().map(this::mapToUserResponse).toList();
+    }
+
+    // Get score history for logged in user
+    public List<ScoreHistoryResponse> getMyScoreHistory() {
+        User currentUser = getCurrentUser();
+        return scoreService.getMyScoreHistory(currentUser);
+
+    }
+
+    // Get my current score and badge
+    public UserResponse getMyScore() {
+        User currentUser = getCurrentUser();
+        return mapToUserResponse(currentUser);
+
     }
 }
