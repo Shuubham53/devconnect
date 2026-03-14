@@ -66,6 +66,8 @@ public class User  implements UserDetails {
     @Column(nullable = false)
     @Builder.Default
     private Integer score = 0;
+    private String otp;
+    private LocalDateTime otpExpiry;
 
     @Column(nullable = false)
     @Builder.Default
