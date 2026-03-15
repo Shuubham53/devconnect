@@ -115,6 +115,14 @@ public class CommentService {
             throw new RuntimeException("Unauthorized — you cannot edit this comment");
         }
         commentRepository.delete(comment);
+        scoreService.deductScore(comment.getPost().getUser(), 2,
+                "Comment deleted from post");
+        // After commentRepository.delete(comment)
+        User postOwner = userRepository.findById(
+                        comment.getPost().getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        scoreService.deductScore(postOwner, 2, "Comment deleted from post");
+        scoreService.deductScore(currentUser, 3, "Deleted a comment");
         return "comment deleted successfully";
 
     }

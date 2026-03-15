@@ -53,9 +53,12 @@ public class FollowService {
                 .build();
 
         followRepository.save(follow);
-        // After followRepository.save(follow);
-        scoreService.addScore(targetUser, 5, "Received a new follower");
-        scoreService.addScore(currentUser, 1, "Followed a developer");
+        User refreshedTarget = userRepository.findById(targetUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User refreshedCurrent = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        scoreService.addScore(refreshedTarget, 5, "Received a new follower");
+        scoreService.addScore(refreshedCurrent, 1, "Followed a developer");
         // In FollowService — after followRepository.save(follow)
         notificationService.createNotification(
                 currentUser,
@@ -83,6 +86,12 @@ public class FollowService {
                         new RuntimeException("You are not following this user"));
 
         followRepository.delete(follow);
+        User refreshedTarget = userRepository.findById(targetUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User refreshedCurrent = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        scoreService.deductScore(refreshedTarget, 5, "Lost a follower");
+        scoreService.deductScore(refreshedCurrent, 1, "Unfollowed a developer");
         return "Successfully unfollowed " + targetUser.getActualUsername();
     }
 

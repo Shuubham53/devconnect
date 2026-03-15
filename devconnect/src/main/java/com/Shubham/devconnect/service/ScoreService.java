@@ -66,5 +66,20 @@ public class ScoreService {
                         .build())
                 .collect(Collectors.toList());
     }
+    public void deductScore(User user, Integer points, String reason) {
+        // Make sure score doesn't go below 0
+        int newScore = Math.max(0, user.getScore() - points);
+        user.setScore(newScore);
+        updateBadge(user);
+        userRepository.save(user);
+
+        // Save negative score history
+        ScoreHistory history = ScoreHistory.builder()
+                .user(user)
+                .points(-points)
+                .reason(reason)
+                .build();
+        scoreHistoryRepository.save(history);
+    }
 
 }

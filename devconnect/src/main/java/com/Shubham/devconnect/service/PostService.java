@@ -80,7 +80,9 @@ public class PostService {
                 .user(currentUser)
                 .build();
         post = postRepository.save(post);
-        scoreService.addScore(currentUser, 10, "Created a post");
+        User refreshedUser = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        scoreService.addScore(refreshedUser, 10, "Created a post");
         return mapToPostResponse(post);
 
     }

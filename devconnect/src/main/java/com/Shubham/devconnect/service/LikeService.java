@@ -58,13 +58,19 @@ public class LikeService {
 
     public String unlikePost(Long postId) {
         User currentUser = getCurrentUser();
-        Post post = postRepository.findById(postId).orElseThrow(()->
+        Post post = postRepository.findById(postId).orElseThrow(() ->
                 new RuntimeException("post not found"));
-        Like like = likeRepository.findByUserAndPost(currentUser,post).orElseThrow(()->
-                new RuntimeException("You haven't liked this post"));
+        Like like = likeRepository.findByUserAndPost(currentUser, post)
+                .orElseThrow(() ->
+                        new RuntimeException("You haven't liked this post"));
         likeRepository.delete(like);
-        return "Post Unliked successfully";
 
+        // Refresh post owner from DB — get latest score
+        User postOwner = userRepository.findById(post.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        scoreService.deductScore(postOwner, 5, "Like removed from post");
+        return "Post Unliked successfully";
     }
 
     public long getLikesCount(Long postId) {
