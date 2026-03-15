@@ -76,6 +76,7 @@ public class PostService {
                 .content(request.getContent())
                 .tags(request.getTags())
                 .postType(request.getPostType())
+                .imageUrl(request.getImageUrl()) // ADD THIS
                 .viewCount(0)
                 .user(currentUser)
                 .build();
@@ -84,6 +85,8 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         scoreService.addScore(refreshedUser, 10, "Created a post");
         return mapToPostResponse(post);
+
+
 
     }
 
@@ -180,6 +183,7 @@ public class PostService {
                 .status(post.getStatus())
                 .viewCount(post.getViewCount())
                 .authorName(post.getUser().getName())
+                .imageUrl(post.getImageUrl())
                 .authorUsername(post.getUser().getActualUsername())
                 .authorId(post.getUser().getId())
                 .likesCount((int) likeRepository.countByPost(post))

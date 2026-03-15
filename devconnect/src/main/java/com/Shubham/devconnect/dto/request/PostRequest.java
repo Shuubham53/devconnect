@@ -16,6 +16,7 @@ public class PostRequest {
     private String content;
 
     private String tags;
+    private String imageUrl;
 
     @NotNull(message = "Post type is required")
     private PostType postType;

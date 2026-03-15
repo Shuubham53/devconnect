@@ -36,6 +36,7 @@ public class Post {
     private String content;
 
     private String tags;
+    private String imageUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

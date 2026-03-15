@@ -31,6 +31,7 @@ public class PostResponse {
     private int likesCount;
     private int commentsCount;
     private int bookmarksCount;
+    private String imageUrl;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime createdAt;
