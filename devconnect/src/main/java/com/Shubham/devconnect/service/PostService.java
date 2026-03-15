@@ -10,6 +10,8 @@ import com.Shubham.devconnect.enums.PostType;
 import com.Shubham.devconnect.repository.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -56,7 +58,7 @@ public class PostService {
                 .map(this::mapToPostResponse)
                 .toList();
     }
-
+    @Cacheable("trending")
     public List<PostResponse> getTrending() {
         LocalDateTime since = LocalDateTime.now().minusHours(24);
         return postRepository.findTrendingPosts(since)
@@ -66,6 +68,7 @@ public class PostService {
     }
 
 
+    @CacheEvict(value = "trending", allEntries = true)
     public PostResponse createPost(PostRequest request) {
         User currentUser = getCurrentUser();
         Post post = Post.builder()
@@ -139,6 +142,7 @@ public class PostService {
     }
 
     // Delete post
+    @CacheEvict(value = "trending", allEntries = true)
     public String deletePost(Long id) {
         User currentuser = getCurrentUser();
         Post post = postRepository.findById(id).orElseThrow(() ->

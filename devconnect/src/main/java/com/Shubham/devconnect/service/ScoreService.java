@@ -6,6 +6,7 @@ import com.Shubham.devconnect.entity.User;
 import com.Shubham.devconnect.repository.ScoreHistoryRepository;
 import com.Shubham.devconnect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ public class ScoreService {
     private final ScoreHistoryRepository scoreHistoryRepository;
 
     // Core method — add points to user
+    @CacheEvict(value = "leaderboard", allEntries = true)
     public void addScore(User user, Integer points, String reason) {
 
         user.setScore(user.getScore()+points);

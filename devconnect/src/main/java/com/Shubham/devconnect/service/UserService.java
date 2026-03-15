@@ -9,6 +9,8 @@ import com.Shubham.devconnect.entity.User;
 import com.Shubham.devconnect.repository.FollowRepository;
 import com.Shubham.devconnect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,6 +39,7 @@ public class UserService {
     }
 
     // Get user profile by username
+    @Cacheable(value = "userProfiles", key = "#username")
     public UserResponse getUserByUsername(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(() ->
                 new UsernameNotFoundException("user not found with username "+username));
@@ -44,6 +47,7 @@ public class UserService {
     }
 
     // Update own profile
+    @CacheEvict(value = "userProfiles", key = "#result.username")
     public UserResponse updateProfile(UpdateProfileRequest request) {
         User user = getCurrentUser();
         if(request.getName() != null){
@@ -134,6 +138,7 @@ public class UserService {
 
 
     // Get top 10 developers by score
+    @Cacheable("leaderboard")
     public List<UserResponse> getLeaderboard() {
         List<User> topDevelopers = userRepository.findTopDevelopers(PageRequest.of(0,10));
         return topDevelopers.stream().map(this::mapToUserResponse).toList();
