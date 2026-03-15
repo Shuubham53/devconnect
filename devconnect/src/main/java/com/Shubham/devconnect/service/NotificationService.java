@@ -8,6 +8,7 @@ import com.Shubham.devconnect.enums.NotificationType;
 import com.Shubham.devconnect.repository.NotificationRepository;
 import com.Shubham.devconnect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder
@@ -33,6 +35,7 @@ public class NotificationService {
         // Don't notify yourself
         if(sender.getId().equals(receiver.getId())) return;
 
+        // Save to database as before
         Notification notification = Notification.builder()
                 .sender(sender)
                 .receiver(receiver)
@@ -40,7 +43,15 @@ public class NotificationService {
                 .message(message)
                 .post(post)
                 .build();
-        notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+
+        // NEW — Send real time notification via WebSocket
+        NotificationResponse response = mapToNotificationResponse(saved);
+        messagingTemplate.convertAndSendToUser(
+                receiver.getEmail(),
+                "/queue/notifications",
+                response
+        );
     }
 
     // Get all notifications for logged in user
