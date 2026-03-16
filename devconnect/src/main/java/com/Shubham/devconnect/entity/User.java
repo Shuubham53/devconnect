@@ -63,13 +63,14 @@ public class User  implements UserDetails {
     @Builder.Default
     private Boolean isActive = true;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer score = 0;
+
     private String otp;
     private LocalDateTime otpExpiry;
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    @Builder.Default
+    private Integer score = 0;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'NEWCOMER'")
     @Builder.Default
     private String badge = "NEWCOMER";
 
