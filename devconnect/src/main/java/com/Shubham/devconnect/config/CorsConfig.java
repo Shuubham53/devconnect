@@ -1,6 +1,5 @@
 package com.Shubham.devconnect.config;
 
-package com.Shubham.devconnect.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
