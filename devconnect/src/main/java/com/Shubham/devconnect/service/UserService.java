@@ -39,7 +39,7 @@ public class UserService {
     }
 
     // Get user profile by username
-    @Cacheable(value = "userProfiles", key = "#username")
+
     public UserResponse getUserByUsername(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(() ->
                 new UsernameNotFoundException("user not found with username "+username));
@@ -47,7 +47,7 @@ public class UserService {
     }
 
     // Update own profile
-    @CacheEvict(value = "userProfiles", key = "#result.username")
+
     public UserResponse updateProfile(UpdateProfileRequest request) {
         User user = getCurrentUser();
         if(request.getName() != null){

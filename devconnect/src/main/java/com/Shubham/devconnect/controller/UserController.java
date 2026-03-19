@@ -23,7 +23,11 @@ public class UserController {
     private final UserService userService;
 
 
-
+    @GetMapping("/leaderboard")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getLeaderboard(){
+        List<UserResponse> responses = userService.getLeaderboard();
+        return ResponseEntity.ok(ApiResponse.success("Top developers , leaderboard",responses));
+    }
     @GetMapping("/{username}")
     public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable String username){
         UserResponse user = userService.getUserByUsername(username);
@@ -43,11 +47,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Search results", users));
     }
-    @GetMapping("/leaderboard")
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getLeaderboard(){
-        List<UserResponse> responses = userService.getLeaderboard();
-        return ResponseEntity.ok(ApiResponse.success("Top developers , leaderboard",responses));
-    }
+
     @GetMapping("/score-history")
     public ResponseEntity<ApiResponse<List<ScoreHistoryResponse>>>getMyScoreHistory(){
         List<ScoreHistoryResponse> response = userService.getMyScoreHistory();

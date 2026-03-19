@@ -1,5 +1,6 @@
 package com.Shubham.devconnect.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -27,10 +28,7 @@ public class RedisConfig {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.activateDefaultTyping(
-                mapper.getPolymorphicTypeValidator(),
-                ObjectMapper.DefaultTyping.NON_FINAL
-        );
+
 
         GenericJackson2JsonRedisSerializer serializer =
                 new GenericJackson2JsonRedisSerializer(mapper);
@@ -46,12 +44,9 @@ public class RedisConfig {
                                 .fromSerializer(serializer));
 
         Map<String, RedisCacheConfiguration> cacheConfigs = new HashMap<>();
-        cacheConfigs.put("trending",
-                defaultConfig.entryTtl(Duration.ofMinutes(15)));
-        cacheConfigs.put("userProfiles",
-                defaultConfig.entryTtl(Duration.ofHours(1)));
-        cacheConfigs.put("leaderboard",
-                defaultConfig.entryTtl(Duration.ofMinutes(5)));
+        cacheConfigs.put("trending", defaultConfig.entryTtl(Duration.ofMinutes(15)));
+        cacheConfigs.put("userProfiles", defaultConfig.entryTtl(Duration.ofHours(1)));
+        cacheConfigs.put("leaderboard", defaultConfig.entryTtl(Duration.ofMinutes(5)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
