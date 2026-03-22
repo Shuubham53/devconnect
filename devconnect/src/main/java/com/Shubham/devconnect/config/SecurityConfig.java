@@ -83,6 +83,14 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/ws/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/posts/**",
+                                "/api/users/leaderboard",
+                                "/api/users/{username}",
+                                "/api/comments/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
