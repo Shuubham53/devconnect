@@ -13,15 +13,9 @@ import org.springframework.web.bind.annotation.*;
 public class LikeController {
     private final LikeService likeService;
 
-    @PostMapping("/{postId}")
-    public ResponseEntity<ApiResponse<String>> likePost(@PathVariable Long postId){
-        String response = likeService.likePost(postId);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<ApiResponse<String>> unlikePost(@PathVariable Long postId){
-        String response = likeService.unlikePost(postId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+    @PostMapping("/{postId}/toggle")
+    public ResponseEntity<?> toggleLike(@PathVariable Long postId) {
+        return ResponseEntity.ok(likeService.toggleLike(postId));
     }
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<Long>> getLikesCount(@PathVariable Long postId){

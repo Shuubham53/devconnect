@@ -15,16 +15,16 @@ import java.util.List;
 public class FollowController {
     private final FollowService followService;
 
-    @PostMapping("/{userId}")
-    public ResponseEntity<ApiResponse<String>> followUser(@PathVariable Long userId){
-        String message = followService.followUser(userId);
-        return ResponseEntity.ok(ApiResponse.success(message));
-
+    @PostMapping("/{userId}/toggle")
+    public ResponseEntity<ApiResponse<String>> toggleFollow(@PathVariable Long userId) {
+        String result = followService.toggleFollow(userId);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<ApiResponse<String>> unfollowUser(@PathVariable Long userId){
-        String message = followService.unfollowUser(userId);
-        return ResponseEntity.ok(ApiResponse.success(message));
+
+    @GetMapping("/{userId}/is-following")
+    public ResponseEntity<ApiResponse<Boolean>> isFollowing(@PathVariable Long userId) {
+        boolean result = followService.isFollowing(userId);
+        return ResponseEntity.ok(ApiResponse.success("status", result));
     }
     @GetMapping("/{username}/followers")
     public ResponseEntity<ApiResponse<List<UserResponse>>>getFollowers(@PathVariable String username){

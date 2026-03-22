@@ -202,6 +202,7 @@ public class PostService {
                 .authorName(post.getUser().getName())
                 .imageUrl(post.getImageUrl())
                 .authorUsername(post.getUser().getActualUsername())
+                .authorAvatarUrl(post.getUser().getAvatarUrl())
                 .authorId(post.getUser().getId())
                 .likesCount((int) likeRepository.countByPost(post))
                 .commentsCount((int) commentRepository.countByPost(post))

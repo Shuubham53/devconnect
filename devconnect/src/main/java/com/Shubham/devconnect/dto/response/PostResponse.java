@@ -28,6 +28,7 @@ public class PostResponse {
     private String authorName;
     private String authorUsername;
     private Long authorId;
+    private String authorAvatarUrl;
     private int likesCount;
     private int commentsCount;
     private int bookmarksCount;

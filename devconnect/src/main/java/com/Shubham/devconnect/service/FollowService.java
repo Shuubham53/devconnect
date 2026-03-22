@@ -34,65 +34,42 @@ public class FollowService {
     }
 
     @Transactional
-    public String followUser(Long userId) {
+    public String toggleFollow(Long userId) {
         User currentUser = getCurrentUser();
         User targetUser = userRepository.findById(userId).orElseThrow(() ->
                 new RuntimeException("User not found"));
 
-        if(currentUser.getId().equals(targetUser.getId())){
+        if (currentUser.getId().equals(targetUser.getId()))
             throw new RuntimeException("You cannot follow yourself");
+
+        if (followRepository.existsByFollowerAndFollowing(currentUser, targetUser)) {
+            Follow follow = followRepository.findByFollowerAndFollowing(currentUser, targetUser)
+                    .orElseThrow(() -> new RuntimeException("Follow not found"));
+            followRepository.delete(follow);
+            User refreshedTarget = userRepository.findById(targetUser.getId()).orElseThrow();
+            User refreshedCurrent = userRepository.findById(currentUser.getId()).orElseThrow();
+            scoreService.deductScore(refreshedTarget, 5, "Lost a follower");
+            scoreService.deductScore(refreshedCurrent, 1, "Unfollowed a developer");
+            return "unfollowed";
+        } else {
+            Follow follow = Follow.builder().follower(currentUser).following(targetUser).build();
+            followRepository.save(follow);
+            User refreshedTarget = userRepository.findById(targetUser.getId()).orElseThrow();
+            User refreshedCurrent = userRepository.findById(currentUser.getId()).orElseThrow();
+            scoreService.addScore(refreshedTarget, 5, "Received a new follower");
+            scoreService.addScore(refreshedCurrent, 1, "Followed a developer");
+            notificationService.createNotification(currentUser, targetUser,
+                    NotificationType.FOLLOW, currentUser.getName() + " started following you", null);
+            return "followed";
         }
-
-        if(followRepository.existsByFollowerAndFollowing(currentUser, targetUser)){
-            throw new RuntimeException("Already following this user");
-        }
-
-        Follow follow = Follow.builder()
-                .follower(currentUser)
-                .following(targetUser)
-                .build();
-
-        followRepository.save(follow);
-        User refreshedTarget = userRepository.findById(targetUser.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        User refreshedCurrent = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        scoreService.addScore(refreshedTarget, 5, "Received a new follower");
-        scoreService.addScore(refreshedCurrent, 1, "Followed a developer");
-        // In FollowService — after followRepository.save(follow)
-        notificationService.createNotification(
-                currentUser,
-                targetUser,
-                NotificationType.FOLLOW,
-                currentUser.getName() + " started following you",
-                null
-        );
-        return "Successfully followed " + targetUser.getActualUsername();
     }
 
-    @Transactional
-    public String unfollowUser(Long userId) {
+    // Add isFollowing check
+    @Transactional(readOnly = true)
+    public boolean isFollowing(Long userId) {
         User currentUser = getCurrentUser();
-        User targetUser = userRepository.findById(userId).orElseThrow(() ->
-                new RuntimeException("User not found"));
-
-        if(currentUser.getId().equals(targetUser.getId())){
-            throw new RuntimeException("You cannot unfollow yourself");
-        }
-
-        Follow follow = followRepository
-                .findByFollowerAndFollowing(currentUser, targetUser)
-                .orElseThrow(() ->
-                        new RuntimeException("You are not following this user"));
-
-        followRepository.delete(follow);
-        User refreshedTarget = userRepository.findById(targetUser.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        User refreshedCurrent = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        scoreService.deductScore(refreshedTarget, 5, "Lost a follower");
-        scoreService.deductScore(refreshedCurrent, 1, "Unfollowed a developer");
-        return "Successfully unfollowed " + targetUser.getActualUsername();
+        User targetUser = userRepository.findById(userId).orElseThrow();
+        return followRepository.existsByFollowerAndFollowing(currentUser, targetUser);
     }
 
     public List<UserResponse> getFollowers(String username) {
