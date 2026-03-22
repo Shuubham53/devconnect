@@ -12,6 +12,7 @@ import com.Shubham.devconnect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,11 +37,11 @@ public class CommentService {
                         new RuntimeException("User not found"));
     }
 
-    // Add comment on post
+    @Transactional
     public CommentResponse addComment(Long postId, CommentRequest request) {
         User currentUser = getCurrentUser();
         Post post = postRepository.findById(postId).orElseThrow(() ->
-                new RuntimeException("post not found"));
+                new RuntimeException("Post not found"));
         Comment comment = Comment.builder()
                 .content(request.getContent())
                 .user(currentUser)
@@ -58,14 +59,13 @@ public class CommentService {
                 post
         );
         return mapToCommentResponse(comment);
-
     }
 
-    // Reply to a comment
+    @Transactional
     public CommentResponse replyToComment(Long commentId, CommentRequest request) {
         User currentUser = getCurrentUser();
-        Comment parentComment = commentRepository.findById(commentId).orElseThrow(()->
-                new RuntimeException("comment not found"));
+        Comment parentComment = commentRepository.findById(commentId).orElseThrow(() ->
+                new RuntimeException("Comment not found"));
         Comment comment = Comment.builder()
                 .post(parentComment.getPost())
                 .content(request.getContent())
@@ -81,23 +81,22 @@ public class CommentService {
                 parentComment.getPost()
         );
         return mapToCommentResponse(comment);
-
     }
 
-    // Get all comments for a post
+    @Transactional(readOnly = true)
     public List<CommentResponse> getCommentsByPost(Long postId) {
         Post post = postRepository.findById(postId).orElseThrow(() ->
-                new RuntimeException("post not found"));
+                new RuntimeException("Post not found"));
         List<Comment> topComments = commentRepository.findByPostAndParentCommentIsNull(post);
         return topComments.stream().map(this::mapToCommentResponse).toList();
     }
 
-    // Edit comment
+    @Transactional
     public CommentResponse editComment(Long commentId, CommentRequest request) {
         User currentUser = getCurrentUser();
-        Comment comment = commentRepository.findById(commentId).orElseThrow(()->
-                new RuntimeException("comment not found"));
-        if(!currentUser.getId().equals(comment.getUser().getId())){
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() ->
+                new RuntimeException("Comment not found"));
+        if (!currentUser.getId().equals(comment.getUser().getId())) {
             throw new RuntimeException("Unauthorized — you cannot edit this comment");
         }
         comment.setContent(request.getContent());
@@ -106,28 +105,22 @@ public class CommentService {
         return mapToCommentResponse(comment);
     }
 
-    // Delete comment
+    @Transactional
     public String deleteComment(Long commentId) {
         User currentUser = getCurrentUser();
-        Comment comment = commentRepository.findById(commentId).orElseThrow(()->
-                new RuntimeException("comment not found"));
-        if(!currentUser.getId().equals(comment.getUser().getId())){
-            throw new RuntimeException("Unauthorized — you cannot edit this comment");
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() ->
+                new RuntimeException("Comment not found"));
+        if (!currentUser.getId().equals(comment.getUser().getId())) {
+            throw new RuntimeException("Unauthorized — you cannot delete this comment");
         }
-        commentRepository.delete(comment);
-        scoreService.deductScore(comment.getPost().getUser(), 2,
-                "Comment deleted from post");
-        // After commentRepository.delete(comment)
-        User postOwner = userRepository.findById(
-                        comment.getPost().getUser().getId())
+        User postOwner = userRepository.findById(comment.getPost().getUser().getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        commentRepository.delete(comment);
         scoreService.deductScore(postOwner, 2, "Comment deleted from post");
         scoreService.deductScore(currentUser, 3, "Deleted a comment");
-        return "comment deleted successfully";
-
+        return "Comment deleted successfully";
     }
 
-    // Map Comment to CommentResponse
     private CommentResponse mapToCommentResponse(Comment comment) {
         return CommentResponse.builder()
                 .id(comment.getId())

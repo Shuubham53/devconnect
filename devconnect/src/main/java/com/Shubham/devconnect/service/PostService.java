@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,6 +48,7 @@ public class PostService {
                         new RuntimeException("User not found"));
     }
 
+    @Transactional
     public List<PostResponse> getFeed() {
         User currentUser = getCurrentUser();
         List<User> followingUsers = followRepository.findByFollower(currentUser)
@@ -58,6 +60,8 @@ public class PostService {
                 .map(this::mapToPostResponse)
                 .toList();
     }
+
+    @Transactional
     @Cacheable("trending")
     public List<PostResponse> getTrending() {
         LocalDateTime since = LocalDateTime.now().minusDays(7);
@@ -67,7 +71,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
-
+    @Transactional
     @CacheEvict(value = "trending", allEntries = true)
     public PostResponse createPost(PostRequest request) {
         User currentUser = getCurrentUser();
@@ -76,7 +80,7 @@ public class PostService {
                 .content(request.getContent())
                 .tags(request.getTags())
                 .postType(request.getPostType())
-                .imageUrl(request.getImageUrl()) // ADD THIS
+                .imageUrl(request.getImageUrl())
                 .viewCount(0)
                 .user(currentUser)
                 .build();
@@ -85,94 +89,107 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         scoreService.addScore(refreshedUser, 10, "Created a post");
         return mapToPostResponse(post);
-
-
-
     }
 
-    // Get all posts paginated
+    @Transactional
     public Page<PostResponse> getAllPosts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-         return postRepository.findByStatus(PostStatus.ACTIVE, pageable)
-               .map(this::mapToPostResponse);
+        return postRepository.findByStatus(PostStatus.ACTIVE, pageable)
+                .map(this::mapToPostResponse);
     }
 
-    // Get single post by id
+    @Transactional
     public PostResponse getPostById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(() ->
-                new RuntimeException("Post not found with id: "+id));
+                new RuntimeException("Post not found with id: " + id));
 
-        if(post.getStatus() != PostStatus.ACTIVE){
+        if (post.getStatus() != PostStatus.ACTIVE) {
             throw new RuntimeException("Post not found");
         }
-        post.setViewCount(post.getViewCount()+1);
+        post.setViewCount(post.getViewCount() + 1);
         post = postRepository.save(post);
 
         return mapToPostResponse(post);
     }
 
-    // Get posts by username
+    @Transactional
     public List<PostResponse> getPostsByUser(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(() ->
                 new UsernameNotFoundException("User not found"));
-        List<Post> posts = postRepository.findByUserAndStatus(user,PostStatus.ACTIVE);
-        return posts.stream().map( this::mapToPostResponse).toList();
-
+        List<Post> posts = postRepository.findByUserAndStatus(user, PostStatus.ACTIVE);
+        return posts.stream().map(this::mapToPostResponse).toList();
     }
 
-    // Update post
+    @Transactional
     public PostResponse updatePost(Long id, PostRequest request) {
         User currentuser = getCurrentUser();
         Post post = postRepository.findById(id).orElseThrow(() ->
                 new RuntimeException("Post not found"));
-        if(!post.getUser().getId().equals(currentuser.getId())){
-            throw new  RuntimeException("Unauthorized, you cannot update post");
+        if (!post.getUser().getId().equals(currentuser.getId())) {
+            throw new RuntimeException("Unauthorized, you cannot update post");
         }
 
-        if(request.getTitle() != null){
-            post.setTitle(request.getTitle());
-        }
-        if(request.getContent() != null){
-            post.setContent(request.getContent());
-        }
-        if(request.getTags()!= null){
-            post.setTags(request.getTags());
-        }
-        if(request.getPostType()!= null){
-            post.setPostType(request.getPostType());
-        }
+        if (request.getTitle() != null) post.setTitle(request.getTitle());
+        if (request.getContent() != null) post.setContent(request.getContent());
+        if (request.getTags() != null) post.setTags(request.getTags());
+        if (request.getPostType() != null) post.setPostType(request.getPostType());
+
         post = postRepository.save(post);
         return mapToPostResponse(post);
-
     }
 
-    // Delete post
+    @Transactional
     @CacheEvict(value = "trending", allEntries = true)
     public String deletePost(Long id) {
         User currentuser = getCurrentUser();
         Post post = postRepository.findById(id).orElseThrow(() ->
                 new RuntimeException("Post not found"));
-        if(!post.getUser().getId().equals(currentuser.getId())){
-            throw new  RuntimeException("Unauthorized, you cannot delete post");
+        if (!post.getUser().getId().equals(currentuser.getId())) {
+            throw new RuntimeException("Unauthorized, you cannot delete post");
         }
         post.setStatus(PostStatus.DELETED);
         postRepository.save(post);
-         return "Post deleted successfully";
+        return "Post deleted successfully";
     }
 
-    // Search posts
+    @Transactional
     public List<PostResponse> searchPosts(String query) {
         List<Post> posts = postRepository.searchPosts(query);
         return posts.stream().map(this::mapToPostResponse).toList();
     }
 
-    // Get posts by tag
+    @Transactional
     public List<PostResponse> getPostsByTag(String tag) {
         List<Post> posts = postRepository.findByTag(tag);
         return posts.stream().map(this::mapToPostResponse).toList();
     }
 
-    // Map Post to PostResponse — boilerplate, I'll give this
+    @Transactional
+    public List<PostResponse> getAllPostsAdmin() {
+        return postRepository.findAll()
+                .stream()
+                .map(this::mapToPostResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public String flagPost(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(() ->
+                new RuntimeException("Post not found"));
+        post.setStatus(PostStatus.FLAGGED);
+        postRepository.save(post);
+        return "Post flagged successfully";
+    }
+
+    @Transactional
+    public String deletePostAdmin(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(() ->
+                new RuntimeException("Post not found"));
+        post.setStatus(PostStatus.DELETED);
+        postRepository.save(post);
+        return "Post deleted successfully";
+    }
+
     private PostResponse mapToPostResponse(Post post) {
         return PostResponse.builder()
                 .id(post.getId())
@@ -192,30 +209,5 @@ public class PostService {
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();
-    }
-    // Get ALL posts including flagged/deleted — admin only
-    public List<PostResponse> getAllPostsAdmin() {
-        return postRepository.findAll()
-                .stream()
-                .map(this::mapToPostResponse)
-                .collect(Collectors.toList());
-    }
-
-    // Flag a post
-    public String flagPost(Long id) {
-        Post post = postRepository.findById(id).orElseThrow(() ->
-                new RuntimeException("Post not found"));
-        post.setStatus(PostStatus.FLAGGED);
-        postRepository.save(post);
-        return "Post flagged successfully";
-    }
-
-    // Delete any post — admin
-    public String deletePostAdmin(Long id) {
-        Post post = postRepository.findById(id).orElseThrow(() ->
-                new RuntimeException("Post not found"));
-        post.setStatus(PostStatus.DELETED);
-        postRepository.save(post);
-        return "Post deleted successfully";
     }
 }

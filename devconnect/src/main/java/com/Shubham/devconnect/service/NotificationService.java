@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,12 +31,10 @@ public class NotificationService {
                 new RuntimeException("User not found"));
     }
 
-    // Called from other services to create notification
+    @Transactional
     public void createNotification(User sender, User receiver, NotificationType type, String message, Post post) {
-        // Don't notify yourself
-        if(sender.getId().equals(receiver.getId())) return;
+        if (sender.getId().equals(receiver.getId())) return;
 
-        // Save to database as before
         Notification notification = Notification.builder()
                 .sender(sender)
                 .receiver(receiver)
@@ -45,7 +44,6 @@ public class NotificationService {
                 .build();
         Notification saved = notificationRepository.save(notification);
 
-        // NEW — Send real time notification via WebSocket
         NotificationResponse response = mapToNotificationResponse(saved);
         messagingTemplate.convertAndSendToUser(
                 receiver.getEmail(),
@@ -54,7 +52,7 @@ public class NotificationService {
         );
     }
 
-    // Get all notifications for logged in user
+    @Transactional(readOnly = true)
     public List<NotificationResponse> getMyNotifications() {
         User currentUser = getCurrentUser();
         return notificationRepository
@@ -64,7 +62,7 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    // Mark single notification as read
+    @Transactional
     public void markAsRead(Long notificationId) {
         Notification notification = notificationRepository
                 .findById(notificationId)
@@ -74,7 +72,7 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    // Mark all notifications as read
+    @Transactional
     public void markAllAsRead() {
         User currentUser = getCurrentUser();
         List<Notification> notifications = notificationRepository
@@ -83,14 +81,14 @@ public class NotificationService {
         notificationRepository.saveAll(notifications);
     }
 
-    // Get unread count
+    @Transactional(readOnly = true)
     public long getUnreadCount() {
         User currentUser = getCurrentUser();
         return notificationRepository
                 .countByReceiverAndIsRead(currentUser, false);
     }
 
-    // Delete notification
+    @Transactional
     public String deleteNotification(Long notificationId) {
         Notification notification = notificationRepository
                 .findById(notificationId)
@@ -100,16 +98,14 @@ public class NotificationService {
         return "Notification deleted successfully";
     }
 
-    private NotificationResponse mapToNotificationResponse(
-            Notification notification) {
+    private NotificationResponse mapToNotificationResponse(Notification notification) {
         return NotificationResponse.builder()
                 .id(notification.getId())
                 .message(notification.getMessage())
                 .type(notification.getType())
                 .isRead(notification.getIsRead())
                 .senderName(notification.getSender().getName())
-                .senderUsername(notification.getSender()
-                        .getActualUsername())
+                .senderUsername(notification.getSender().getActualUsername())
                 .postId(notification.getPost() != null ?
                         notification.getPost().getId() : null)
                 .createdAt(notification.getCreatedAt())
