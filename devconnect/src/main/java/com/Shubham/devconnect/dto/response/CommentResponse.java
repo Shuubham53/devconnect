@@ -27,6 +27,7 @@ public class CommentResponse {
     private Long postId;
     private Long parentCommentId;
     private List<CommentResponse> replies;
+    private String authorAvatarUrl;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime createdAt;

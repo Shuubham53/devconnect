@@ -130,6 +130,7 @@ public class CommentService {
                 .authorUsername(comment.getUser().getActualUsername())
                 .authorId(comment.getUser().getId())
                 .postId(comment.getPost().getId())
+                .authorAvatarUrl(comment.getUser().getAvatarUrl())
                 .parentCommentId(comment.getParentComment() != null ?
                         comment.getParentComment().getId() : null)
                 .replies(comment.getReplies().stream()
