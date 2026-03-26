@@ -47,7 +47,11 @@ public class AuthService {
                 .role(Role.USER)
                 .build();
          user = userRepository.save(user);
-         emailService.sendOtpEmail(user.getEmail(),otp);
+        try {
+            emailService.sendOtpEmail(user.getEmail(), otp);
+        } catch (Exception e) {
+            System.out.println("Email failed: " + e.getMessage());
+        }
         return          "Registration successful , Please verify your email with OTP sent to " + user.getEmail();
 
     }
