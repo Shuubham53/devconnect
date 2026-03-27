@@ -1,48 +1,64 @@
 package com.Shubham.devconnect.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${brevo.api.key}")
+    private String apiKey;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public void sendOtpEmail(String toEmail, String otp) {
 
+        String url = "https://api.brevo.com/v3/smtp/email";
+
+        Map<String, Object> body = new HashMap<>();
+
+        // Sender
+        Map<String, String> sender = new HashMap<>();
+        sender.put("email", "shubhamnishad110@gmail.com");
+
+        // Receiver
+        List<Map<String, String>> toList = new ArrayList<>();
+        Map<String, String> to = new HashMap<>();
+        to.put("email", toEmail);
+        toList.add(to);
+
+        // Email content
+        body.put("sender", sender);
+        body.put("to", toList);
+        body.put("subject", "DevConnect — Email Verification");
+        body.put("textContent", "Your OTP is: " + otp);
+
+        // Headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("api-key", apiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Request
+        HttpEntity<Map<String, Object>> request =
+                new HttpEntity<>(body, headers);
+
         try {
-            System.out.println("📩 [EmailService] Preparing to send email...");
-            System.out.println("➡️ To: " + toEmail);
-            System.out.println("🔐 OTP: " + otp);
+            ResponseEntity<String> response =
+                    restTemplate.postForEntity(url, request, String.class);
 
-            SimpleMailMessage message = new SimpleMailMessage();
-
-            // 🔥 IMPORTANT (must match verified Brevo sender)
-            message.setFrom("shubhamnishad110@gmail.com");
-
-            message.setTo(toEmail);
-            message.setSubject("DevConnect — Email Verification");
-            message.setText(
-                    "Welcome to DevConnect! 🚀\n\n" +
-                            "Your OTP for email verification is:\n\n" +
-                            "OTP: " + otp + "\n\n" +
-                            "This OTP is valid for 10 minutes.\n\n" +
-                            "If you didn't register on DevConnect, ignore this email.\n\n" +
-                            "Team DevConnect"
-            );
-
-            System.out.println("📤 Sending email...");
-            mailSender.send(message);
-
-            System.out.println("✅ Email sent successfully to " + toEmail);
+            System.out.println("✅ Email sent via API: " + response.getStatusCode());
 
         } catch (Exception e) {
-            System.out.println("❌ Email sending failed!");
-            System.out.println("⚠️ Reason: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("❌ API Error: " + e.getMessage());
         }
     }
 }
