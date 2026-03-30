@@ -3,6 +3,7 @@ package com.Shubham.devconnect.service;
 import com.Shubham.devconnect.dto.response.PostResponse;
 import com.Shubham.devconnect.entity.Bookmark;
 import com.Shubham.devconnect.entity.Like;
+import org.springframework.transaction.annotation.Transactional;
 import com.Shubham.devconnect.entity.Post;
 import com.Shubham.devconnect.entity.User;
 import com.Shubham.devconnect.repository.*;
@@ -29,7 +30,22 @@ public class BookmarkService {
         return userRepository.findByEmail(email).orElseThrow(() ->
                 new UsernameNotFoundException("User not found"));
     }
+    @Transactional
+    public String toggleBookmark(Long postId) {
+        User currentUser = getCurrentUser();
+        Post post = postRepository.findById(postId).orElseThrow(() ->
+                new RuntimeException("Post not found"));
+        if (bookMarkRepository.existsByUserAndPost(currentUser, post)) {
+            Bookmark bookmark = bookMarkRepository.findByUserAndPost(currentUser, post).orElseThrow();
+            bookMarkRepository.delete(bookmark);
+            return "removed";
+        } else {
+            bookMarkRepository.save(Bookmark.builder().post(post).user(currentUser).build());
+            return "saved";
+        }
+    }
 
+    @Transactional
     public String bookmarkPost(Long postId) {
         User currentUser = getCurrentUser();
         Post post = postRepository.findById(postId).orElseThrow(()->
@@ -46,6 +62,7 @@ public class BookmarkService {
         return "Post book marked successfully";
     }
 
+    @Transactional
     public String removeBookmark(Long postId) {
         User currentUser = getCurrentUser();
         Post post = postRepository.findById(postId).orElseThrow(()->
@@ -57,6 +74,7 @@ public class BookmarkService {
 
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getMyBookmarks() {
         User currentUser = getCurrentUser();
         return bookMarkRepository.findByUser(currentUser)
@@ -78,6 +96,7 @@ public class BookmarkService {
                 .authorName(post.getUser().getName())
                 .authorUsername(post.getUser().getActualUsername())
                 .authorId(post.getUser().getId())
+                .authorAvatarUrl(post.getUser().getAvatarUrl())
                 .likesCount((int) likeRepository.countByPost(post))
                 .commentsCount((int) commentRepository.countByPost(post))
                 .bookmarksCount((int) bookMarkRepository.countByPost(post))

@@ -17,6 +17,11 @@ import java.util.List;
 public class BookmarkController {
     private final BookmarkService bookmarkService;
 
+    @PostMapping("/{postId}/toggle")
+    public ResponseEntity<ApiResponse<String>> toggleBookmark(@PathVariable Long postId) {
+        String result = bookmarkService.toggleBookmark(postId);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
     @PostMapping("/{postId}")
     public ResponseEntity<ApiResponse<String>> bookmarkPost(@PathVariable Long postId){
         String response = bookmarkService.bookmarkPost(postId);
