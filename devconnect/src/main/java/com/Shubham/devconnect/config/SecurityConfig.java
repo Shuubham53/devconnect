@@ -1,8 +1,9 @@
 package com.Shubham.devconnect.config;
 
-import com.Shubham.devconnect.security.JwtFilter;
+import com.Shubham.devconnect.security.JwtAuthFilter;
 import com.Shubham.devconnect.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.Jar;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,7 +30,7 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtFilter jwtFilter;
+    private final JwtAuthFilter jwtFilter;
     private final UserDetailsServiceImpl userDetailsService;
     @Bean
     public PasswordEncoder passwordEncoder(){
