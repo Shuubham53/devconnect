@@ -50,12 +50,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // CORRECT - use setAllowedOriginPatterns for wildcards
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "https://devconnect-eygp.onrender.com",
-                "https://devconnets.vercel.app"
-
+                "https://devconnets.vercel.app",
+                "https://devconnectss.vercel.app"  // ← add this
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
